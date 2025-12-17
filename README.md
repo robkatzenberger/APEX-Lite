@@ -123,6 +123,15 @@ Example Policy
 }
 ```
 ---
+## CLI (Reference Interface)
+
+APEX Lite includes a minimal CLI stub that demonstrates how intent is evaluated against policy.
+
+```bash
+node bin/apex-lite.js evaluate examples/intent.json examples/policy.yaml
+```
+
+---
 
 ## Logging
 APEX Lite produces an append-only log containing:
