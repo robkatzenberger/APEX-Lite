@@ -4,7 +4,7 @@ APEX Lite exists to answer a narrow but important question:
 
 > Where should execution authority live when AI systems are allowed to act?
 
-This document explains why APEX Lite places that authority **outside the model**, and what problems it is — and is not — designed to address.
+This document explains why APEX Lite places that authority **outside the model**, and what problems it is - and is not - designed to address.
 
 ---
 
@@ -85,7 +85,7 @@ It does not:
 - learn or adapt policies
 - replace human judgment
 
-These problems are real — and intentionally out of scope.
+These problems are real - and intentionally out of scope.
 
 APEX Lite focuses on a single responsibility:
  **Enforcing explicit policy at execution time.**
@@ -97,6 +97,7 @@ APEX Lite focuses on a single responsibility:
 APEX Lite exists because:
 - execution requires stronger guarantees than generation
 - guardrails inside models are not sufficient for enforcement
+- internal evaluation behavior can change over time without operator visibility
 - independent, deterministic boundaries reduce risk
 - safety improves when responsibility is clearly separated
 
