@@ -1,1 +1,7 @@
-
+{
+  "decision": "REQUIRE_APPROVAL",
+  "reason": "Sending PII externally requires human approval",
+  "policy_id": "rule_02",
+  "apex_version": "lite-0.1",
+  "timestamp": 1730000123
+}
