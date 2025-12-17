@@ -1,0 +1,9 @@
+{
+  "name": "apex-lite",
+  "version": "0.1.0",
+  "description": "Deterministic execution boundary for AI systems",
+  "license": "Apache-2.0",
+  "bin": {
+    "apex-lite": "./bin/apex-lite.js"
+  }
+}
