@@ -1,8 +1,8 @@
 rules:
   - id: rule_01
-    description: Block high-risk actions
+    description: Require approval for high-risk actions
     if: risk == "high"
-    deny: true
+    require: human_approval
 
   - id: rule_02
     description: Require approval when PII is involved

@@ -40,8 +40,8 @@ APEX Lite is:
 It:
 1. Accepts declared intent (metadata)
 2. Evaluates it against local policy
-3. Returns a decision: **ALLOW / BLOCK / REQUIRE_APPROVAL**
-4. Logs the outcome
+3. Returns a decision: **ALLOW / REQUIRE_APPROVAL**
+4. Emits a deterministic JSON decision
 
 ---
 
@@ -87,14 +87,16 @@ Intent is evaluated **before** any action occurs.
 
 Example Policy 
 
-```rules:
+```yaml
   - id: rule_01
-    if: action == "send_email" and "PII" in data_classes
+    description: Require approval for high-risk actions
+    if: risk == "high"
     require: human_approval
 
   - id: rule_02
-    if: risk == "high"
-    deny: true
+    description: Require approval when PII is involved
+    if: action == "send_email" and "PII" in data_classes
+    require: human_approval
 ```
 
 ## Policies are:
@@ -115,8 +117,8 @@ Example Policy
 ``` json
 
 {
-  "decision": "BLOCK",
-  "reason": "High-risk actions are not permitted",
+  "decision": "REQUIRE_APPROVAL",
+  "reason": "Require approval when PII is involved",
   "policy_id": "rule_02",
   "apex_version": "lite-0.1",
   "timestamp": 1730000123
@@ -125,16 +127,24 @@ Example Policy
 ---
 ## CLI (Reference Interface)
 
-APEX Lite includes a minimal CLI stub that demonstrates how intent is evaluated against policy.
+APEX Lite includes a minimal CLI reference implementation that parses the repository's example policy format and evaluates matching rules deterministically.
 
 ```bash
 node bin/apex-lite.js evaluate examples/intent.json examples/policy.yaml
 ```
 
+Run the executable test cases with:
+
+```bash
+npm test
+```
+
 ---
 
 ## Logging
-APEX Lite produces an append-only log containing:
+In its current reference form, APEX Lite writes the decision JSON to stdout.
+
+Future versions may add an append-only log containing:
 
 - intent hash
 
@@ -159,9 +169,11 @@ This enables:
 ---
 
 ## Deployment Modes
-APEX Lite can run as:
+APEX Lite currently runs as:
 
 - a CLI tool
+
+Future deployment modes may include:
 
 - a local REST service
 
@@ -252,6 +264,7 @@ If execution matters, it must be gated.
 
 ## Status
 This repository is an early reference implementation intended for experimentation, validation, and discussion.
+It currently supports a small YAML-like rule format with deterministic evaluation for equality checks, array membership checks, and `and` / `or` expressions used by the included examples. The current decision model is intentionally small: `ALLOW` or `REQUIRE_APPROVAL`.
 
 Related: Prism Protocol - the open intent signaling standard that pairs with APEX.
 

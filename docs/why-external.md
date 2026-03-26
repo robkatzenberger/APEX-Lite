@@ -90,6 +90,10 @@ These problems are real - and intentionally out of scope.
 APEX Lite focuses on a single responsibility:
  **Enforcing explicit policy at execution time.**
 
+In this reference implementation, enforcement means either:
+- allowing the action to proceed, or
+- requiring explicit human approval before execution
+
 ---
 
 ## Summary
@@ -106,5 +110,3 @@ It is not a universal solution.
 It is a small, inspectable one.
 
 ---
-
-
