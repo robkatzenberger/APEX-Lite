@@ -198,6 +198,31 @@ Safety does not depend on model behavior
 - Human-defined boundaries
 Policy reflects local risk tolerance and values
 
+- Escalation is a reward, not a penalty
+The system rewards transparency by design
+
+---
+
+## Why There Is No DENY
+
+APEX Lite intentionally offers only two outcomes: **ALLOW** and **REQUIRE_APPROVAL**.
+
+There is no DENY, and this is by design.
+
+A hard block creates an adversarial dynamic. If an agent knows certain actions will be denied outright, the incentive shifts toward gaming the system — rewording intent, recategorizing risk, or finding creative paths around the block. This is the same cat-and-mouse pattern that plagues prompt-based safety today.
+
+By removing DENY, APEX Lite eliminates that incentive entirely. The worst-case outcome for any declared action is that a human reviews it first. Escalation is not a punishment — it is the system working correctly.
+
+This produces a fundamentally healthier posture:
+- Agents have no reason to obscure what they are doing
+- Intent signals stay honest because transparency is never penalized
+- Human oversight is framed as collaboration, not enforcement
+
+> **The system rewards escalation. An agent that accurately declares high-risk intent is behaving exactly as intended.**
+
+APEX Lite does not ask "how do we stop bad actions?"
+It asks "how do we keep intent honest?" — and answers by making honesty the optimal strategy.
+
 ---
 
 ## Why a Third-Party Execution Boundary?

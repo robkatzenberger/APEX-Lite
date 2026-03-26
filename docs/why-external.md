@@ -96,6 +96,25 @@ In this reference implementation, enforcement means either:
 
 ---
 
+## Why Escalation Is a Reward
+
+APEX Lite does not include a DENY outcome. This is a deliberate design choice, not a missing feature.
+
+Hard blocks create adversarial incentives. When an agent knows that certain declarations will result in outright denial, it is incentivized to game the system — misrepresenting intent, downgrading risk categories, or routing around the boundary entirely. This reproduces the exact problem that prompt-based safety mechanisms already face.
+
+APEX Lite avoids this by making escalation the strongest possible response. When an agent accurately declares a high-risk action and the system escalates it to human review, the agent has behaved exactly as intended. The system rewarded honest declaration with the appropriate level of oversight.
+
+This produces several important properties:
+- **Transparency is the optimal strategy.** Agents gain nothing by obscuring intent, because escalation is not punitive.
+- **Intent signals remain trustworthy.** The metadata pipeline (from Prism through APEX) stays honest because honesty is never penalized.
+- **Human oversight is collaborative.** Approval is framed as a checkpoint, not a gatekeep. The human and the agent are on the same side.
+
+> The question is not "how do we stop bad actions?"
+> It is "how do we keep intent honest?"
+> APEX Lite answers by making honesty the best possible strategy.
+
+---
+
 ## Summary
 
 APEX Lite exists because:
