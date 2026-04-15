@@ -4,6 +4,8 @@ APEX-Lite stands for Action Policy EXecution. It is a minimal external pre-execu
 
 APEX-Lite evaluates declared intent before execution. It compares that intent to explicit operator-defined policy, returns a deterministic decision, emits a receipt, and can append that receipt to an audit log.
 
+This repository is the minimal public reference implementation of APEX-Lite. It is meant to be understandable, inspectable, and broadly reusable on its own. It does not claim to include every private, enterprise, or patent-backed implementation detail that may exist around the broader APEX approach.
+
 The open-source reference implementation now also includes a local gate configuration under `config/`. That file defines the required request fields and simple keyword-driven gates such as email and folders.
 It also includes an optional local notification configuration under `config/` for SMS escalation notices.
 
@@ -246,3 +248,9 @@ The current implementation is intentionally small:
 - `public/`
 
 This is meant to feel closer to a SCADA-style interlock or admission controller than to an autonomous system.
+
+## License
+
+This repository is licensed under Apache-2.0. See `LICENSE`.
+
+That permissive license applies to this public reference implementation. It should not be read as a claim that every enterprise deployment pattern, private implementation detail, or broader patent-backed system around APEX-Lite is included in this repository.
