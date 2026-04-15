@@ -4,9 +4,7 @@
     "enabled": false,
     "provider": "log_only",
     "from": "APEX-Lite",
-    "recipients": [
-      "+15555550123"
-    ],
+    "recipients": [],
     "twilio": {
       "account_sid_env": "TWILIO_ACCOUNT_SID",
       "auth_token_env": "TWILIO_AUTH_TOKEN",

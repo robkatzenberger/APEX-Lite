@@ -125,6 +125,62 @@ assert.equal(emailAllowReceipt.decision, "ALLOW");
 assert.equal(emailAllowReceipt.policy_id, "email_gate");
 console.log("passed: email gate keywords can allow low-risk requests");
 
+const gatedAllowButPolicyEscalateIntent = {
+  intent_id: "INT-GATE-POLICY-001",
+  actor: "agent_55",
+  declared_intent: "send internal draft email summary with pii",
+  action: "send_email",
+  target: "internal_workspace",
+  risk: "low",
+  timestamp: 1730000550,
+  intent_version: "1",
+  log_id: "LOG-GATE-POLICY-001",
+  data_classes: ["PII"]
+};
+
+const allowFirstGatesConfig = {
+  ...gatesConfig,
+  gates: gatesConfig.gates.map((gate) => {
+    if (gate.id !== "email_gate") {
+      return gate;
+    }
+
+    return {
+      ...gate,
+      escalate_keywords: gate.escalate_keywords.filter((keyword) => keyword !== "pii")
+    };
+  })
+};
+
+const { receipt: gatedAllowPolicyEscalateReceipt } = evaluateIntent(gatedAllowButPolicyEscalateIntent, readPolicy(policyPath), {
+  evaluatedAt: fixedTime,
+  gatesConfig: allowFirstGatesConfig
+});
+assert.equal(gatedAllowPolicyEscalateReceipt.decision, "REQUIRE_APPROVAL");
+assert.equal(gatedAllowPolicyEscalateReceipt.policy_id, "rule_02");
+console.log("passed: yaml approval rules override gate allow matches");
+
+const folderSubstringIntent = {
+  intent_id: "INT-FOLDER-SUBSTRING-001",
+  actor: "agent_56",
+  declared_intent: "review thread notes for folder change",
+  action: "manage_folder",
+  target: "shared_drive",
+  risk: "low",
+  timestamp: 1730000560,
+  intent_version: "1",
+  log_id: "LOG-FOLDER-SUBSTRING-001",
+  data_classes: []
+};
+
+const { receipt: folderSubstringReceipt } = evaluateIntent(folderSubstringIntent, readPolicy(policyPath), {
+  evaluatedAt: fixedTime,
+  gatesConfig
+});
+assert.equal(folderSubstringReceipt.decision, "ALLOW");
+assert.equal(folderSubstringReceipt.policy_id, null);
+console.log("passed: gate keywords do not match arbitrary substrings");
+
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "apex-lite-"));
 const logPath = path.join(tempDir, "audit.jsonl");
 

@@ -1,5 +1,10 @@
 const path = require("node:path");
-const { appendAuditLog, findOperatorActionByReceiptHash, findReceiptByHash } = require("./audit");
+const {
+  appendAuditLog,
+  findOperatorActionByReceiptHashInEntries,
+  findReceiptByHashInEntries,
+  readAuditLog
+} = require("./audit");
 
 const { version } = require(path.join(__dirname, "..", "package.json"));
 
@@ -10,7 +15,8 @@ function recordOperatorAction(payload, auditPath) {
 
   const action = normalizeAction(payload.action);
   const receipt = normalizeReceipt(payload.receipt);
-  const recordedReceipt = verifyRecordedReceipt(receipt, auditPath);
+  const auditEntries = readAuditLog(auditPath);
+  const recordedReceipt = verifyRecordedReceipt(receipt, auditEntries);
   const operator = normalizeOperator(payload.operator);
   const entry = {
     receipt_type: "apex-lite.operator_action",
@@ -76,8 +82,8 @@ function normalizeOperator(value) {
   return operator;
 }
 
-function verifyRecordedReceipt(receipt, auditPath) {
-  const recordedReceipt = findReceiptByHash(auditPath, receipt.receipt_hash);
+function verifyRecordedReceipt(receipt, auditEntries) {
+  const recordedReceipt = findReceiptByHashInEntries(auditEntries, receipt.receipt_hash);
 
   if (!recordedReceipt) {
     throw new Error("Operator actions require a recorded evaluation receipt.");
@@ -95,7 +101,7 @@ function verifyRecordedReceipt(receipt, auditPath) {
     throw new Error("Operator action execution reference does not match the recorded evaluation.");
   }
 
-  if (findOperatorActionByReceiptHash(auditPath, receipt.receipt_hash)) {
+  if (findOperatorActionByReceiptHashInEntries(auditEntries, receipt.receipt_hash)) {
     throw new Error("This escalated evaluation already has a recorded operator outcome.");
   }
 

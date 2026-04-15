@@ -4,8 +4,8 @@ APEX-Lite stands for Action Policy EXecution. It is a minimal external policy bo
 
 APEX-Lite evaluates declared intent before execution. It compares that intent to explicit operator-defined policy, returns a deterministic decision, emits a receipt, and can append that receipt to an audit log.
 
-The open-source reference implementation now also includes a local gate configuration file at `config/gates.json`. That file defines the required request fields and simple keyword-driven gates such as email and folders.
-It also includes an optional local notification config at `config/notifications.json` for SMS escalation notices.
+The open-source reference implementation now also includes a local gate configuration under `config/`. That file defines the required request fields and simple keyword-driven gates such as email and folders.
+It also includes an optional local notification configuration under `config/` for SMS escalation notices.
 
 ## What APEX-Lite Does
 
@@ -48,6 +48,7 @@ The decision model is intentionally small:
 Normal uncertainty routes to approval rather than hard denial. The current implementation keeps the existing `REQUIRE_APPROVAL` label so it can later map cleanly to `ESCALATE`.
 
 Escalation is treated as a positive transparency signal, not a failure state. The reference implementation does not expose a normal `DENY` or block path. It operates in `ALLOW_OR_ESCALATE` mode and records escalations with a reward signal rather than punishing honest declaration.
+If both a gate and a YAML rule apply, `REQUIRE_APPROVAL` wins over `ALLOW`.
 
 ## Policy Format
 
@@ -115,9 +116,9 @@ The console:
 
 The local server uses:
 
-- `examples/policy.yaml` as the policy file
-- `var/audit.jsonl` as the append-only audit log
-- `config/notifications.json` for optional SMS escalation notifications
+- the example policy under `examples/`
+- the append-only audit log under `var/`
+- the optional notification configuration under `config/`
 
 The console also makes the trust model explicit to the submitting party: the declared intent is entering a policy gate, and gaming that declaration is not beneficial for either side because it breaks trust in the boundary itself.
 
@@ -178,7 +179,7 @@ Example:
 
 ## Gate Config
 
-The local gate config lives in `config/gates.json`.
+The local gate configuration lives under `config/`.
 
 It gives the open-source build one plain place to define:
 
@@ -187,7 +188,7 @@ It gives the open-source build one plain place to define:
 - keywords that should escalate
 - keywords that are safe to allow
 
-The current evaluator checks this gate config first, then applies the repository policy rules.
+Gate matching is intentionally simple and deterministic. It uses normalized whole-keyword matching rather than arbitrary substring matching, and YAML policy rules still run after gate evaluation so approval requirements cannot be bypassed by a gate allow match.
 
 ## Audit Log
 
@@ -196,6 +197,7 @@ Escalation resolutions also append operator action entries with an explicit `out
 Those action entries also record the resolving operator identifier.
 Escalation notifications can also append `apex-lite.notification` entries so operators can see whether an SMS notice was skipped, simulated, sent, or failed.
 Only one operator outcome is accepted for a given escalated receipt.
+Operator-action verification reads the audit log once per request and checks the referenced receipt and prior operator outcome against that recorded history.
 
 That keeps the first implementation:
 
@@ -217,6 +219,8 @@ The tests cover:
 - high-risk escalation
 - PII escalation
 - safe allow behavior
+- YAML approval rules overriding gate allow matches
+- whole-keyword gate matching instead of arbitrary substring matches
 - receipt hash presence
 - one-line-per-evaluation audit logging
 - real `POST /api/evaluate` responses
@@ -229,9 +233,16 @@ The tests cover:
 The current implementation is intentionally small:
 
 - `bin/apex-lite.js`
-- `src/engine.js`
-- `src/policy.js`
-- `src/receipt.js`
-- `src/audit.js`
+- `src/engine`
+- `src/policy`
+- `src/receipt`
+- `src/audit`
+- `src/index`
+- `src/server`
+- `src/operator-action`
+- `src/gates`
+- `src/notifications`
+- `config/`
+- `public/`
 
 This is meant to feel closer to a SCADA-style interlock or admission controller than to an autonomous system.

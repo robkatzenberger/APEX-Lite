@@ -52,12 +52,29 @@ function buildHaystack(intent) {
     ...(Array.isArray(intent.data_classes) ? intent.data_classes : [])
   ]
     .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
+    .map(normalizeText)
+    .filter(Boolean)
+    .join(" ");
 }
 
 function matchesAnyKeyword(haystack, keywords = []) {
-  return keywords.some((keyword) => haystack.includes(String(keyword).toLowerCase()));
+  const paddedHaystack = ` ${haystack} `;
+  return keywords.some((keyword) => {
+    const normalizedKeyword = normalizeText(String(keyword));
+    if (!normalizedKeyword) {
+      return false;
+    }
+
+    return paddedHaystack.includes(` ${normalizedKeyword} `);
+  });
+}
+
+function normalizeText(value) {
+  return String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
 }
 
 module.exports = {

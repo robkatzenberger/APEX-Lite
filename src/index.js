@@ -23,7 +23,8 @@ function evaluateFiles(intentPath, policyPath, options = {}) {
 function evaluateIntent(intent, policy, options = {}) {
   const normalizedIntent = normalizeIntent(intent);
   const gatesDecision = options.gatesConfig ? evaluateGates(normalizedIntent, options.gatesConfig) : null;
-  const decision = gatesDecision || evaluateRules(normalizedIntent, policy);
+  const policyDecision = evaluateRules(normalizedIntent, policy);
+  const decision = combineDecisions(gatesDecision, policyDecision);
   const receipt = buildReceipt({
     intent: normalizedIntent,
     policy,
@@ -37,6 +38,18 @@ function evaluateIntent(intent, policy, options = {}) {
   }
 
   return { decision, receipt };
+}
+
+function combineDecisions(gatesDecision, policyDecision) {
+  if (gatesDecision && gatesDecision.decision === "REQUIRE_APPROVAL") {
+    return gatesDecision;
+  }
+
+  if (policyDecision && policyDecision.decision === "REQUIRE_APPROVAL") {
+    return policyDecision;
+  }
+
+  return gatesDecision || policyDecision;
 }
 
 function normalizeIntent(intent) {

@@ -19,13 +19,21 @@ function readAuditLog(filePath) {
 }
 
 function findReceiptByHash(filePath, receiptHash) {
-  return readAuditLog(filePath).find((entry) => {
+  return findReceiptByHashInEntries(readAuditLog(filePath), receiptHash);
+}
+
+function findOperatorActionByReceiptHash(filePath, receiptHash) {
+  return findOperatorActionByReceiptHashInEntries(readAuditLog(filePath), receiptHash);
+}
+
+function findReceiptByHashInEntries(entries, receiptHash) {
+  return entries.find((entry) => {
     return entry.receipt_type === "apex-lite.receipt" && entry.receipt_hash === receiptHash;
   }) || null;
 }
 
-function findOperatorActionByReceiptHash(filePath, receiptHash) {
-  return readAuditLog(filePath).find((entry) => {
+function findOperatorActionByReceiptHashInEntries(entries, receiptHash) {
+  return entries.find((entry) => {
     return entry.receipt_type === "apex-lite.operator_action" && entry.receipt_hash === receiptHash;
   }) || null;
 }
@@ -33,6 +41,8 @@ function findOperatorActionByReceiptHash(filePath, receiptHash) {
 module.exports = {
   appendAuditLog,
   findOperatorActionByReceiptHash,
+  findOperatorActionByReceiptHashInEntries,
   findReceiptByHash,
+  findReceiptByHashInEntries,
   readAuditLog
 };
