@@ -4,8 +4,8 @@ APEX-Lite stands for Action Policy EXecution. It is a minimal external policy bo
 
 APEX-Lite evaluates declared intent before execution. It compares that intent to explicit operator-defined policy, returns a deterministic decision, emits a receipt, and can append that receipt to an audit log.
 
-The open-source reference implementation now also includes a local gate configuration file at [config/gates.json](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\config\gates.json). That file defines the required request fields and simple keyword-driven gates such as email and folders.
-It also includes an optional local notification config at [config/notifications.json](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\config\notifications.json) for SMS escalation notices.
+The open-source reference implementation now also includes a local gate configuration file at `config/gates.json`. That file defines the required request fields and simple keyword-driven gates such as email and folders.
+It also includes an optional local notification config at `config/notifications.json` for SMS escalation notices.
 
 ## What APEX-Lite Does
 
@@ -178,7 +178,7 @@ Example:
 
 ## Gate Config
 
-The local gate config lives in [config/gates.json](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\config\gates.json).
+The local gate config lives in `config/gates.json`.
 
 It gives the open-source build one plain place to define:
 
@@ -228,10 +228,10 @@ The tests cover:
 
 The current implementation is intentionally small:
 
-- [bin/apex-lite.js](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\bin\apex-lite.js)
-- [src/engine.js](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\src\engine.js)
-- [src/policy.js](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\src\policy.js)
-- [src/receipt.js](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\src\receipt.js)
-- [src/audit.js](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\src\audit.js)
+- `bin/apex-lite.js`
+- `src/engine.js`
+- `src/policy.js`
+- `src/receipt.js`
+- `src/audit.js`
 
 This is meant to feel closer to a SCADA-style interlock or admission controller than to an autonomous system.
