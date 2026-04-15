@@ -4,6 +4,9 @@ APEX-Lite stands for Action Policy EXecution. It is a minimal external policy bo
 
 APEX-Lite evaluates declared intent before execution. It compares that intent to explicit operator-defined policy, returns a deterministic decision, emits a receipt, and can append that receipt to an audit log.
 
+The open-source reference implementation now also includes a local gate configuration file at [config/gates.json](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\config\gates.json). That file defines the required request fields and simple keyword-driven gates such as email and folders.
+It also includes an optional local notification config at [config/notifications.json](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\config\notifications.json) for SMS escalation notices.
+
 ## What APEX-Lite Does
 
 APEX-Lite is:
@@ -102,6 +105,7 @@ The console:
 
 - accepts manual intent input
 - accepts a local operator identifier for escalation outcomes
+- accepts `declared_intent`, request `version`, and `log_id`
 - posts to `POST /api/evaluate`
 - posts queue approvals and escalations to `POST /api/operator-action`
 - displays the real receipt returned by the engine
@@ -113,6 +117,7 @@ The local server uses:
 
 - `examples/policy.yaml` as the policy file
 - `var/audit.jsonl` as the append-only audit log
+- `config/notifications.json` for optional SMS escalation notifications
 
 The console also makes the trust model explicit to the submitting party: the declared intent is entering a policy gate, and gaming that declaration is not beneficial for either side because it breaks trust in the boundary itself.
 
@@ -142,16 +147,25 @@ Example:
   "receipt_type": "apex-lite.receipt",
   "apex_version": "0.1.0",
   "evaluated_at": "2026-01-01T00:00:00.000Z",
+  "control_mode": "ALLOW_OR_ESCALATE",
+  "blocking": false,
   "decision": "REQUIRE_APPROVAL",
-  "reason": "Require approval when PII is involved",
-  "policy_id": "rule_02",
-  "policy_hash": "…",
-  "intent_hash": "…",
+  "reason": "Email gate matched escalation keywords",
+  "policy_id": "email_gate",
+  "execution_ref": "exec_0123456789abcdef",
+  "receipt_hash": "<sha256>",
+  "policy_hash": "<sha256>",
+  "intent_hash": "<sha256>",
+  "reward_signal": "TRANSPARENCY_REWARDED",
   "original_intent": {
+    "intent_id": "INT-001",
     "actor": "agent_42",
+    "declared_intent": "send external customer email with pii attachment",
     "action": "send_email",
     "target": "external_user",
     "risk": "medium",
+    "intent_version": "1",
+    "log_id": "LOG-001",
     "data_classes": ["PII"],
     "timestamp": 1730000000
   }
@@ -159,14 +173,29 @@ Example:
 ```
 
 `policy_hash` and `intent_hash` are SHA-256 hashes of stable canonical JSON representations. They make evaluations easier to replay and audit.
-`receipt_hash` is a stable SHA-256 hash of the receipt body itself, so operator actions can point back to one exact evaluation record.
+`receipt_hash` is a stable SHA-256 hash of the receipt body, excluding the `receipt_hash` field itself, so operator actions can point back to one exact evaluation record.
 `execution_ref` is a simple handoff reference that downstream tools can carry forward to show which exact policy decision an execution came from.
+
+## Gate Config
+
+The local gate config lives in [config/gates.json](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\config\gates.json).
+
+It gives the open-source build one plain place to define:
+
+- required request fields such as user or agent name, date and time, declared intent, version number, and log id
+- gate categories such as email and folders
+- keywords that should escalate
+- keywords that are safe to allow
+
+The current evaluator checks this gate config first, then applies the repository policy rules.
 
 ## Audit Log
 
 The optional audit log is append-only JSONL. Each evaluation appends one receipt as one line.
 Escalation resolutions also append operator action entries with an explicit `outcome`, so the audit trail records not just that escalation occurred, but how it ended.
 Those action entries also record the resolving operator identifier.
+Escalation notifications can also append `apex-lite.notification` entries so operators can see whether an SMS notice was skipped, simulated, sent, or failed.
+Only one operator outcome is accepted for a given escalated receipt.
 
 That keeps the first implementation:
 

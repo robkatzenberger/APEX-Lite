@@ -24,8 +24,15 @@ function findReceiptByHash(filePath, receiptHash) {
   }) || null;
 }
 
+function findOperatorActionByReceiptHash(filePath, receiptHash) {
+  return readAuditLog(filePath).find((entry) => {
+    return entry.receipt_type === "apex-lite.operator_action" && entry.receipt_hash === receiptHash;
+  }) || null;
+}
+
 module.exports = {
   appendAuditLog,
+  findOperatorActionByReceiptHash,
   findReceiptByHash,
   readAuditLog
 };

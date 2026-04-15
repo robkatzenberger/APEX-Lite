@@ -1,5 +1,5 @@
 const path = require("node:path");
-const { appendAuditLog, findReceiptByHash } = require("./audit");
+const { appendAuditLog, findOperatorActionByReceiptHash, findReceiptByHash } = require("./audit");
 
 const { version } = require(path.join(__dirname, "..", "package.json"));
 
@@ -89,6 +89,14 @@ function verifyRecordedReceipt(receipt, auditPath) {
 
   if (recordedReceipt.intent_hash !== receipt.intent_hash || recordedReceipt.policy_hash !== receipt.policy_hash) {
     throw new Error("Operator action receipt does not match the recorded evaluation.");
+  }
+
+  if (recordedReceipt.execution_ref !== receipt.execution_ref) {
+    throw new Error("Operator action execution reference does not match the recorded evaluation.");
+  }
+
+  if (findOperatorActionByReceiptHash(auditPath, receipt.receipt_hash)) {
+    throw new Error("This escalated evaluation already has a recorded operator outcome.");
   }
 
   return recordedReceipt;

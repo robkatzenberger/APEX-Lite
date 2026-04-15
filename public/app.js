@@ -116,6 +116,10 @@ function updateEvaluateState(message) {
 }
 
 function verdictClass(decision) {
+  if (decision === "SIMULATED" || decision === "SENT") {
+    return "v-human";
+  }
+
   if (decision === "APPROVE") {
     return "v-allow";
   }
@@ -128,6 +132,10 @@ function verdictClass(decision) {
 }
 
 function receiptDecisionLabel(decision) {
+  if (decision === "SIMULATED" || decision === "SENT") {
+    return "sms";
+  }
+
   if (decision === "APPROVE") {
     return "approve";
   }
@@ -140,7 +148,7 @@ function receiptDecisionLabel(decision) {
 }
 
 function entryTime(entry) {
-  return entry.evaluated_at || entry.action_at || "";
+  return entry.evaluated_at || entry.action_at || entry.notification_at || "";
 }
 
 function entryIntentId(entry) {
@@ -157,6 +165,10 @@ function entrySummary(entry) {
     return entry.action === "APPROVE" ? operator + " approved escalated intent" : operator + " rewarded transparent escalation with human review";
   }
 
+  if (entry.receipt_type === "apex-lite.notification") {
+    return "SMS notification " + String(entry.status || "unknown").toLowerCase() + " for escalation";
+  }
+
   return entry.reason || "No reason recorded";
 }
 
@@ -167,6 +179,8 @@ function renderReceipt(receipt) {
   document.getElementById("receipt-meta").innerHTML =
     '<div class="meta-row"><span class="meta-key">decision</span><span class="meta-value">' + escapeHtml(receipt.decision) + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">reason</span><span class="meta-value">' + escapeHtml(receipt.reason) + '</span></div>' +
+    '<div class="meta-row"><span class="meta-key">log_id</span><span class="meta-value">' + escapeHtml(receipt.original_intent.log_id || "none") + '</span></div>' +
+    '<div class="meta-row"><span class="meta-key">version</span><span class="meta-value">' + escapeHtml(receipt.original_intent.intent_version || "none") + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">control_mode</span><span class="meta-value">' + escapeHtml(receipt.control_mode) + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">blocking</span><span class="meta-value">' + escapeHtml(String(receipt.blocking)) + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">execution_ref</span><span class="meta-value">' + escapeHtml(receipt.execution_ref) + '</span></div>' +
@@ -275,7 +289,7 @@ function renderAudit(entries) {
     const item = document.createElement("div");
     item.className = "audit-item";
     item.innerHTML =
-      '<div class="audit-top"><span class="verdict ' + verdictClass(entry.decision || entry.action) + '">' + escapeHtml(receiptDecisionLabel(entry.decision || entry.action)) + "</span><span>" + escapeHtml(entryTime(entry)) + "</span></div>" +
+      '<div class="audit-top"><span class="verdict ' + verdictClass(entry.decision || entry.action || entry.status) + '">' + escapeHtml(receiptDecisionLabel(entry.decision || entry.action || entry.status)) + "</span><span>" + escapeHtml(entryTime(entry)) + "</span></div>" +
       '<div class="txn-row2">' + escapeHtml(entryIntentId(entry)) + " - " + escapeHtml(entrySummary(entry)) + "</div>" +
       '<div class="audit-hashes">execution: ' + escapeHtml(entry.execution_ref || "n/a") + "<br>receipt: " + escapeHtml(entry.receipt_hash || "n/a") + "<br>policy: " + escapeHtml(entry.policy_hash) + "<br>intent: " + escapeHtml(entry.intent_hash) + "</div>";
     list.appendChild(item);
@@ -301,9 +315,12 @@ function formIntent() {
   return {
     intent_id: form.intent_id.value.trim(),
     actor: form.actor.value.trim(),
+    declared_intent: form.declared_intent.value.trim(),
     action: form.action.value.trim(),
     target: form.target.value.trim(),
     risk: form.risk.value.trim(),
+    intent_version: form.intent_version.value.trim(),
+    log_id: form.log_id.value.trim(),
     data_classes: form.data_classes.value.split(",").map((item) => item.trim()).filter(Boolean),
     timestamp: form.timestamp.value.trim()
   };

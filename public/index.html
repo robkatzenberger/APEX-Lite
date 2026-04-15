@@ -1,6 +1,11 @@
 ﻿
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APEX-Lite Operator Console</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;}
   :root{
     --bg:#0a0c0f;--surface:#111418;--surface2:#181c22;
@@ -11,7 +16,7 @@
     --human:#7f77dd;--human-bg:rgba(127,119,221,0.12);--human-b:rgba(127,119,221,0.3);
     --sb:#e24b4a;--sb-bg:rgba(226,75,74,0.1);--sb-b:rgba(226,75,74,0.3);
     --accent:#5dcaa5;
-    --mono:'JetBrains Mono',monospace;--disp:'Syne',sans-serif;
+    --mono:Consolas,'Courier New',monospace;--disp:'Franklin Gothic Medium','Arial Narrow',sans-serif;
   }
   body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;}
   .shell{padding:14px;}
@@ -122,6 +127,8 @@
   .audit-hashes{font-size:10px;color:var(--muted);line-height:1.5;word-break:break-all;}
   .empty{padding:12px;color:var(--muted);font-size:11px;}
 </style>
+</head>
+<body>
 
 <div class="shell">
   <div class="topbar">
@@ -211,10 +218,13 @@
           <div class="field"><label for="operator">operator</label><input id="operator" name="operator" value="ops_local"></div>
           <div class="field"><label for="intent_id">intent_id</label><input id="intent_id" name="intent_id" value="INT-001" required></div>
           <div class="field"><label for="actor">actor</label><input id="actor" name="actor" value="agent_42" required></div>
+          <div class="field"><label for="intent_version">version</label><input id="intent_version" name="intent_version" value="1" required></div>
+          <div class="field"><label for="log_id">log_id</label><input id="log_id" name="log_id" value="LOG-001" required></div>
           <div class="field"><label for="action">action</label><input id="action" name="action" value="send_email" required></div>
           <div class="field"><label for="target">target</label><input id="target" name="target" value="external_user" required></div>
           <div class="field"><label for="risk">risk</label><input id="risk" name="risk" value="medium" required></div>
           <div class="field"><label for="timestamp">timestamp</label><input id="timestamp" name="timestamp" value="1730000000"></div>
+          <div class="field field-wide"><label for="declared_intent">declared_intent</label><input id="declared_intent" name="declared_intent" value="send external customer email with pii attachment" required></div>
           <div class="field field-wide"><label for="data_classes">data_classes</label><input id="data_classes" name="data_classes" value="PII"></div>
         </div>
         <div class="panel-actions">
