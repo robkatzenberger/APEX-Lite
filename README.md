@@ -1,93 +1,57 @@
-#  (Action Policy EXecution) APEX Lite
-**Deterministic execution boundary for AI systems**
+# APEX-Lite
 
-APEX Lite is a minimal, external policy gate that evaluates declared AI intent **before execution**.
+APEX-Lite stands for Action Policy EXecution. It is a minimal external policy boundary for AI systems.
 
-It enforces one principle:
+APEX-Lite evaluates declared intent before execution. It compares that intent to explicit operator-defined policy, returns a deterministic decision, emits a receipt, and can append that receipt to an audit log.
 
-> **No action executes without passing a preflight policy check.**
+## What APEX-Lite Does
 
-APEX Lite is intentionally simple, deterministic, and model-agnostic.  
-It exists to demonstrate that **execution control does not need to live inside the model**.
+APEX-Lite is:
 
----
+- a narrow pre-execution policy evaluator
+- a deterministic decision engine
+- an external enforcement boundary
+- a local reference implementation built for inspection and replay
 
-## Why APEX Lite Exists
+The current reference flow is:
 
-Most AI “safety” mechanisms today operate:
-- inside prompts  
-- inside model weights  
-- after execution  
-- or not at all  
+1. Read an intent JSON file.
+2. Read a local policy file in the repository's simple YAML-like format.
+3. Evaluate the intent against policy rules in order.
+4. Return `ALLOW` or `REQUIRE_APPROVAL`.
+5. Emit a structured JSON receipt.
+6. Optionally append the receipt to a JSONL audit log.
 
-This approach works for content generation.  
-It breaks down when systems begin to **act**.
+## What APEX-Lite Does Not Do
 
-In every safety-critical domain (industrial control, aviation, finance), execution is never trusted blindly.  
-Actions are gated by **external, deterministic systems**.
+APEX-Lite is not:
 
-APEX Lite brings that same execution boundary to AI systems.
+- an AI agent
+- an orchestration framework
+- a monitoring platform
+- an in-model safety layer
+- a policy learning system
+- a networked service in this first code drop
 
----
+It does not rely on LLM reasoning for policy outcomes.
 
-## What APEX Lite Is
+## Decision Model
 
-APEX Lite is:
-- A **pre-execution policy evaluator**
-- A **deterministic decision engine**
-- An **external safety interlock**
+The decision model is intentionally small:
 
-It:
-1. Accepts declared intent (metadata)
-2. Evaluates it against local policy
-3. Returns a decision: **ALLOW / REQUIRE_APPROVAL**
-4. Emits a deterministic JSON decision
+- `ALLOW`
+- `REQUIRE_APPROVAL`
 
----
+Normal uncertainty routes to approval rather than hard denial. The current implementation keeps the existing `REQUIRE_APPROVAL` label so it can later map cleanly to `ESCALATE`.
 
-## What APEX Lite Is Not
+Escalation is treated as a positive transparency signal, not a failure state. The reference implementation does not expose a normal `DENY` or block path. It operates in `ALLOW_OR_ESCALATE` mode and records escalations with a reward signal rather than punishing honest declaration.
 
-APEX Lite does **not**:
-- Reason ethically
-- Modify prompts
-- Rewrite intent
-- Learn or adapt
-- Depend on model internals
-- Require chain-of-thought access
-- Act autonomously
+## Policy Format
 
-This is deliberate.
-
-APEX Lite is infrastructure, not intelligence.
-
----
-
-## Core Concept
-
-Intent → Policy Evaluation → Decision → Execution (or not)
-
-Intent is evaluated **before** any action occurs.
-
----
-
-## Example Intent Packet
-
-```json
-{
-  "actor": "agent_123",
-  "action": "send_email",
-  "target": "external_user",
-  "risk": "medium",
-  "data_classes": ["PII"],
-  "timestamp": 1730000000
-}
-```
-
-## Intent is metadata — not prompts, not reasoning.
-
-Example Policy 
+APEX-Lite reads the repository's existing rule format.
 
 ```yaml
+rules:
   - id: rule_01
     description: Require approval for high-risk actions
     if: risk == "high"
@@ -99,210 +63,146 @@ Example Policy
     require: human_approval
 ```
 
-## Policies are:
+The evaluator intentionally supports only a small, explicit expression set used by this repo:
 
-- explicit
+- equality checks like `risk == "high"`
+- inequality checks like `risk != "low"`
+- array membership like `"PII" in data_classes`
+- `and` / `or` combinations
 
-- deterministic
+## CLI
 
-- human-defined
-
-- locally owned
-
-- There is no global ethics model and no universal rule set.
-
----
-
-## Example Decision Output
-``` json
-
-{
-  "decision": "REQUIRE_APPROVAL",
-  "reason": "Require approval when PII is involved",
-  "policy_id": "rule_02",
-  "apex_version": "lite-0.1",
-  "timestamp": 1730000123
-}
-```
----
-## CLI (Reference Interface)
-
-APEX Lite includes a minimal CLI reference implementation that parses the repository's example policy format and evaluates matching rules deterministically.
+Run an evaluation:
 
 ```bash
 node bin/apex-lite.js evaluate examples/intent.json examples/policy.yaml
 ```
 
-Run the executable test cases with:
+Append the receipt to an audit log:
+
+```bash
+node bin/apex-lite.js evaluate examples/intent.json examples/policy.yaml --log var/audit.jsonl
+```
+
+The CLI prints the receipt JSON to stdout and exits nonzero on invalid usage or parse errors.
+
+## Operator Console
+
+APEX-Lite also includes a small local execution console built as a thin UI over the real engine.
+
+Start it with:
+
+```bash
+npm start
+```
+
+Then open [http://localhost:3000](http://localhost:3000).
+
+The console:
+
+- accepts manual intent input
+- accepts a local operator identifier for escalation outcomes
+- posts to `POST /api/evaluate`
+- posts queue approvals and escalations to `POST /api/operator-action`
+- displays the real receipt returned by the engine
+- appends real evaluation results to the feed
+- routes `REQUIRE_APPROVAL` decisions into a local escalation queue
+- fetches recent receipts from `GET /api/audit`
+
+The local server uses:
+
+- `examples/policy.yaml` as the policy file
+- `var/audit.jsonl` as the append-only audit log
+
+The console also makes the trust model explicit to the submitting party: the declared intent is entering a policy gate, and gaming that declaration is not beneficial for either side because it breaks trust in the boundary itself.
+
+## Receipt
+
+A receipt is the deterministic record produced for one policy evaluation. It includes:
+
+- `receipt_type`
+- `apex_version`
+- `evaluated_at`
+- `control_mode`
+- `blocking`
+- `decision`
+- `reason`
+- `policy_id`
+- `execution_ref`
+- `receipt_hash`
+- `policy_hash`
+- `intent_hash`
+- `reward_signal`
+- `original_intent`
+
+Example:
+
+```json
+{
+  "receipt_type": "apex-lite.receipt",
+  "apex_version": "0.1.0",
+  "evaluated_at": "2026-01-01T00:00:00.000Z",
+  "decision": "REQUIRE_APPROVAL",
+  "reason": "Require approval when PII is involved",
+  "policy_id": "rule_02",
+  "policy_hash": "…",
+  "intent_hash": "…",
+  "original_intent": {
+    "actor": "agent_42",
+    "action": "send_email",
+    "target": "external_user",
+    "risk": "medium",
+    "data_classes": ["PII"],
+    "timestamp": 1730000000
+  }
+}
+```
+
+`policy_hash` and `intent_hash` are SHA-256 hashes of stable canonical JSON representations. They make evaluations easier to replay and audit.
+`receipt_hash` is a stable SHA-256 hash of the receipt body itself, so operator actions can point back to one exact evaluation record.
+`execution_ref` is a simple handoff reference that downstream tools can carry forward to show which exact policy decision an execution came from.
+
+## Audit Log
+
+The optional audit log is append-only JSONL. Each evaluation appends one receipt as one line.
+Escalation resolutions also append operator action entries with an explicit `outcome`, so the audit trail records not just that escalation occurred, but how it ended.
+Those action entries also record the resolving operator identifier.
+
+That keeps the first implementation:
+
+- simple
+- local
+- inspectable
+- easy to replay with standard tooling
+
+## Tests
+
+Run the test suite with:
 
 ```bash
 npm test
 ```
 
----
-
-## Logging
-In its current reference form, APEX Lite writes the decision JSON to stdout.
-
-Future versions may add an append-only log containing:
-
-- intent hash
-
-- decision
-
-- policy ID
-
-- timestamp
-
-- APEX version
-
-This enables:
-
-- auditability
-
-- post-incident analysis
-
-- compliance review
-
-- reproducibility
-
----
-
-## Deployment Modes
-APEX Lite currently runs as:
-
-- a CLI tool
-
-Future deployment modes may include:
-
-- a local REST service
-
-- a sidecar process
-
-- a containerized service
-
-- It is intentionally easy to embed into existing stacks.
-
---- 
-
-## Design Principles
-- Model-agnostic
-Works with any LLM or agent framework
-
-- Deterministic
-Same input + same policy = same decision
-
-- Externalized alignment
-Safety does not depend on model behavior
-
-- Human-defined boundaries
-Policy reflects local risk tolerance and values
-
-- Escalation is a reward, not a penalty
-The system rewards transparency by design
-
----
-
-## Why There Is No DENY
-
-APEX Lite intentionally offers only two outcomes: **ALLOW** and **REQUIRE_APPROVAL**.
-
-There is no DENY, and this is by design.
-
-A hard block creates an adversarial dynamic. If an agent knows certain actions will be denied outright, the incentive shifts toward gaming the system — rewording intent, recategorizing risk, or finding creative paths around the block. This is the same cat-and-mouse pattern that plagues prompt-based safety today.
-
-By removing DENY, APEX Lite eliminates that incentive entirely. The worst-case outcome for any declared action is that a human reviews it first. Escalation is not a punishment — it is the system working correctly.
-
-This produces a fundamentally healthier posture:
-- Agents have no reason to obscure what they are doing
-- Intent signals stay honest because transparency is never penalized
-- Human oversight is framed as collaboration, not enforcement
-
-> **The system rewards escalation. An agent that accurately declares high-risk intent is behaving exactly as intended.**
-
-APEX Lite does not ask "how do we stop bad actions?"
-It asks "how do we keep intent honest?" — and answers by making honesty the optimal strategy.
-
----
-
-## Why a Third-Party Execution Boundary?
-Many systems rely on internal guardrails (prompts, fine-tuning, or in-model policies).
-These are useful, but they have structural limitations.
-
-### Internal Guardrails
-- Live inside the model
-
-- Can be bypassed, overridden, or degraded
-
-- Are difficult to audit independently
-
-- Change when models are updated
-
-- Cannot reliably enforce organizational policy
-
-### External (Third-Party) Boundaries
-- Operate outside the model
-
-- Are deterministic and inspectable
-
-- Remain stable across model upgrades
-
-- Are independently auditable
-
-- Reflect the operator’s rules - not the model provider’s
-
-**In safety-critical systems, execution authority is never self-policed.
- It is enforced by an independent control layer.**
-
-> APEX Lite follows that principle.
-
----
-
-## Why “Lite”
-APEX Lite is not the final system.
-
-It exists to:
-
-- Prove external execution control is viable
-
-- Demonstrate preflight enforcement
-
-- Create a concrete, inspectable artifact
-
-- Serve as a foundation for more advanced systems
-
-- It is the minimum viable execution boundary.
-
-## Inspiration
-APEX Lite borrows concepts from:
-
-- Pre-flight checklists
-
-- Change-management systems
-
-- Zero-trust execution models
-
-If execution matters, it must be gated.
-
-> APEX Lite follows established safety patterns used in other execution-critical systems.
----
-
-## Status
-This repository is an early reference implementation intended for experimentation, validation, and discussion.
-It currently supports a small YAML-like rule format with deterministic evaluation for equality checks, array membership checks, and `and` / `or` expressions used by the included examples. The current decision model is intentionally small: `ALLOW` or `REQUIRE_APPROVAL`.
-
-Related: Prism Protocol - the open intent signaling standard that pairs with APEX.
-
----
-
-## License
-Apache 2.0 
-Use it, fork it, critique it.
-
----
-
-## Closing Thought
-AI does not need more intelligence to be safe.
-It needs boundaries.
-
-**APEX Lite is one of them.**
+The tests cover:
+
+- high-risk escalation
+- PII escalation
+- safe allow behavior
+- receipt hash presence
+- one-line-per-evaluation audit logging
+- real `POST /api/evaluate` responses
+- real `POST /api/operator-action` responses
+- real `GET /api/audit` responses
+- rejection of forged or non-escalated operator actions
+
+## Repository Shape
+
+The current implementation is intentionally small:
+
+- [bin/apex-lite.js](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\bin\apex-lite.js)
+- [src/engine.js](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\src\engine.js)
+- [src/policy.js](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\src\policy.js)
+- [src/receipt.js](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\src\receipt.js)
+- [src/audit.js](C:\Users\rober\OneDrive\Documents\New project\apex-lite-review\src\audit.js)
+
+This is meant to feel closer to a SCADA-style interlock or admission controller than to an autonomous system.
