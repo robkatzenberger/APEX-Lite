@@ -18,31 +18,31 @@ function readAuditLog(filePath) {
     .map((line) => JSON.parse(line));
 }
 
-function findReceiptByHash(filePath, receiptHash) {
-  return findReceiptByHashInEntries(readAuditLog(filePath), receiptHash);
+function findReceiptById(filePath, receiptId) {
+  return findReceiptByIdInEntries(readAuditLog(filePath), receiptId);
 }
 
-function findOperatorActionByReceiptHash(filePath, receiptHash) {
-  return findOperatorActionByReceiptHashInEntries(readAuditLog(filePath), receiptHash);
+function findOperatorActionByReceiptId(filePath, receiptId) {
+  return findOperatorActionByReceiptIdInEntries(readAuditLog(filePath), receiptId);
 }
 
-function findReceiptByHashInEntries(entries, receiptHash) {
+function findReceiptByIdInEntries(entries, receiptId) {
   return entries.find((entry) => {
-    return entry.receipt_type === "apex-lite.receipt" && entry.receipt_hash === receiptHash;
+    return entry.receipt_type === "apex-lite.receipt" && entry.receipt_id === receiptId;
   }) || null;
 }
 
-function findOperatorActionByReceiptHashInEntries(entries, receiptHash) {
+function findOperatorActionByReceiptIdInEntries(entries, receiptId) {
   return entries.find((entry) => {
-    return entry.receipt_type === "apex-lite.operator_action" && entry.receipt_hash === receiptHash;
+    return entry.receipt_type === "apex-lite.operator_action" && entry.receipt_id === receiptId;
   }) || null;
 }
 
 module.exports = {
   appendAuditLog,
-  findOperatorActionByReceiptHash,
-  findOperatorActionByReceiptHashInEntries,
-  findReceiptByHash,
-  findReceiptByHashInEntries,
+  findOperatorActionByReceiptId,
+  findOperatorActionByReceiptIdInEntries,
+  findReceiptById,
+  findReceiptByIdInEntries,
   readAuditLog
 };

@@ -1,8 +1,8 @@
 const path = require("node:path");
 const {
   appendAuditLog,
-  findOperatorActionByReceiptHashInEntries,
-  findReceiptByHashInEntries,
+  findOperatorActionByReceiptIdInEntries,
+  findReceiptByIdInEntries,
   readAuditLog
 } = require("./audit");
 
@@ -24,12 +24,9 @@ function recordOperatorAction(payload, auditPath) {
     action_at: new Date().toISOString(),
     action,
     operator,
+    receipt_id: recordedReceipt.receipt_id,
     intent_id: recordedReceipt.original_intent.intent_id || null,
-    execution_ref: recordedReceipt.execution_ref,
-    receipt_hash: recordedReceipt.receipt_hash,
-    intent_hash: recordedReceipt.intent_hash,
     policy_id: recordedReceipt.policy_id || null,
-    policy_hash: recordedReceipt.policy_hash,
     original_decision: recordedReceipt.decision,
     original_reason: recordedReceipt.reason,
     outcome: action === "APPROVE" ? "ALLOW" : "ESCALATED_TO_HUMAN",
@@ -57,7 +54,7 @@ function normalizeReceipt(receipt) {
     throw new Error("A receipt is required for operator actions.");
   }
 
-  if (!receipt.intent_hash || !receipt.policy_hash || !receipt.receipt_hash) {
+  if (!receipt.receipt_id) {
     throw new Error("Operator actions require a valid evaluation receipt.");
   }
 
@@ -83,7 +80,7 @@ function normalizeOperator(value) {
 }
 
 function verifyRecordedReceipt(receipt, auditEntries) {
-  const recordedReceipt = findReceiptByHashInEntries(auditEntries, receipt.receipt_hash);
+  const recordedReceipt = findReceiptByIdInEntries(auditEntries, receipt.receipt_id);
 
   if (!recordedReceipt) {
     throw new Error("Operator actions require a recorded evaluation receipt.");
@@ -93,15 +90,15 @@ function verifyRecordedReceipt(receipt, auditEntries) {
     throw new Error("Operator actions are only valid for escalated evaluations.");
   }
 
-  if (recordedReceipt.intent_hash !== receipt.intent_hash || recordedReceipt.policy_hash !== receipt.policy_hash) {
+  if ((recordedReceipt.original_intent || {}).intent_id !== (receipt.original_intent || {}).intent_id) {
     throw new Error("Operator action receipt does not match the recorded evaluation.");
   }
 
-  if (recordedReceipt.execution_ref !== receipt.execution_ref) {
-    throw new Error("Operator action execution reference does not match the recorded evaluation.");
+  if (recordedReceipt.evaluated_at !== receipt.evaluated_at) {
+    throw new Error("Operator action receipt does not match the recorded evaluation.");
   }
 
-  if (findOperatorActionByReceiptHashInEntries(auditEntries, receipt.receipt_hash)) {
+  if (findOperatorActionByReceiptIdInEntries(auditEntries, receipt.receipt_id)) {
     throw new Error("This escalated evaluation already has a recorded operator outcome.");
   }
 

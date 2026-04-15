@@ -59,13 +59,14 @@ const { receipt } = evaluateFiles(path.join(repoRoot, "examples", "intent-safe.j
   evaluatedAt: fixedTime
 });
 
-assert.match(receipt.receipt_hash, /^[a-f0-9]{64}$/);
-assert.match(receipt.execution_ref, /^exec_[a-f0-9]{16}$/);
-assert.match(receipt.policy_hash, /^[a-f0-9]{64}$/);
-assert.match(receipt.intent_hash, /^[a-f0-9]{64}$/);
+assert.match(receipt.receipt_id, /^rcpt_/);
+assert.equal("receipt_hash" in receipt, false);
+assert.equal("policy_hash" in receipt, false);
+assert.equal("intent_hash" in receipt, false);
+assert.equal("execution_ref" in receipt, false);
 assert.equal(receipt.control_mode, "ALLOW_OR_ESCALATE");
 assert.equal(receipt.blocking, false);
-console.log("passed: receipt includes stable hashes and no-block control mode");
+console.log("passed: receipt includes plain receipt ids and no-block control mode");
 
 const gatesConfig = readGatesConfig(gatesPath);
 assert.equal(gatesConfig.intent_schema.required_fields.includes("declared_intent"), true);
@@ -239,8 +240,8 @@ try {
   assert.equal(evaluateResponse.body.blocking, false);
   assert.equal(evaluateResponse.body.original_intent.log_id, "LOG-API-001");
   assert.equal(evaluateResponse.body.notification.status, "SIMULATED");
-  assert.match(evaluateResponse.body.receipt_hash, /^[a-f0-9]{64}$/);
-  assert.match(evaluateResponse.body.execution_ref, /^exec_[a-f0-9]{16}$/);
+  assert.match(evaluateResponse.body.receipt_id, /^rcpt_/);
+  assert.equal("receipt_hash" in evaluateResponse.body, false);
   console.log("passed: api evaluate returns a real receipt with rewarded escalation");
 
   const auditResponse = await requestJSON(port, "/api/audit");
@@ -264,8 +265,7 @@ try {
   assert.equal(operatorResponse.body.action, "APPROVE");
   assert.equal(operatorResponse.body.intent_id, "INT-API-001");
   assert.equal(operatorResponse.body.operator, "ops_local");
-  assert.equal(operatorResponse.body.execution_ref, evaluateResponse.body.execution_ref);
-  assert.equal(operatorResponse.body.receipt_hash, evaluateResponse.body.receipt_hash);
+  assert.equal(operatorResponse.body.receipt_id, evaluateResponse.body.receipt_id);
   assert.equal(operatorResponse.body.outcome, "ALLOW");
   console.log("passed: operator actions are recorded as audit events");
 
@@ -296,7 +296,7 @@ try {
       action: "approve",
       receipt: {
         ...evaluateResponse.body,
-        receipt_hash: "f".repeat(64)
+        receipt_id: "rcpt_fake_receipt"
       }
     }
   });

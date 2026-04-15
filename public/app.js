@@ -179,15 +179,12 @@ function renderReceipt(receipt) {
   document.getElementById("receipt-meta").innerHTML =
     '<div class="meta-row"><span class="meta-key">decision</span><span class="meta-value">' + escapeHtml(receipt.decision) + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">reason</span><span class="meta-value">' + escapeHtml(receipt.reason) + '</span></div>' +
+    '<div class="meta-row"><span class="meta-key">receipt_id</span><span class="meta-value">' + escapeHtml(receipt.receipt_id || "none") + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">log_id</span><span class="meta-value">' + escapeHtml(receipt.original_intent.log_id || "none") + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">version</span><span class="meta-value">' + escapeHtml(receipt.original_intent.intent_version || "none") + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">control_mode</span><span class="meta-value">' + escapeHtml(receipt.control_mode) + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">blocking</span><span class="meta-value">' + escapeHtml(String(receipt.blocking)) + '</span></div>' +
-    '<div class="meta-row"><span class="meta-key">execution_ref</span><span class="meta-value">' + escapeHtml(receipt.execution_ref) + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">policy_id</span><span class="meta-value">' + escapeHtml(receipt.policy_id || "none") + '</span></div>' +
-    '<div class="meta-row"><span class="meta-key">receipt_hash</span><span class="meta-value">' + escapeHtml(receipt.receipt_hash) + '</span></div>' +
-    '<div class="meta-row"><span class="meta-key">policy_hash</span><span class="meta-value">' + escapeHtml(receipt.policy_hash) + '</span></div>' +
-    '<div class="meta-row"><span class="meta-key">intent_hash</span><span class="meta-value">' + escapeHtml(receipt.intent_hash) + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">reward_signal</span><span class="meta-value">' + escapeHtml(receipt.reward_signal || "none") + '</span></div>' +
     '<div class="meta-row"><span class="meta-key">evaluated_at</span><span class="meta-value">' + escapeHtml(receipt.evaluated_at) + "</span></div>";
   document.getElementById("receipt-json").textContent = JSON.stringify(receipt, null, 2);
@@ -213,7 +210,7 @@ function addFeedItem(receipt) {
 }
 
 function addEscalation(receipt) {
-  state.escItems.unshift({ id: receipt.intent_hash, receipt });
+  state.escItems.unshift({ id: receipt.receipt_id || receipt.original_intent.intent_id, receipt });
   renderEscalations();
 }
 
@@ -291,7 +288,7 @@ function renderAudit(entries) {
     item.innerHTML =
       '<div class="audit-top"><span class="verdict ' + verdictClass(entry.decision || entry.action || entry.status) + '">' + escapeHtml(receiptDecisionLabel(entry.decision || entry.action || entry.status)) + "</span><span>" + escapeHtml(entryTime(entry)) + "</span></div>" +
       '<div class="txn-row2">' + escapeHtml(entryIntentId(entry)) + " - " + escapeHtml(entrySummary(entry)) + "</div>" +
-      '<div class="audit-hashes">execution: ' + escapeHtml(entry.execution_ref || "n/a") + "<br>receipt: " + escapeHtml(entry.receipt_hash || "n/a") + "<br>policy: " + escapeHtml(entry.policy_hash) + "<br>intent: " + escapeHtml(entry.intent_hash) + "</div>";
+      '<div class="audit-hashes">receipt: ' + escapeHtml(entry.receipt_id || "n/a") + "<br>policy: " + escapeHtml(entry.policy_id || "none") + "</div>";
     list.appendChild(item);
   });
 }

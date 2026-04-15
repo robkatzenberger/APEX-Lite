@@ -13,11 +13,8 @@ async function notifyEscalation(receipt, notificationConfig, auditPath) {
     receipt_type: "apex-lite.notification",
     channel: "sms",
     notification_at: new Date().toISOString(),
+    receipt_id: receipt.receipt_id,
     intent_id: receipt.original_intent.intent_id || null,
-    execution_ref: receipt.execution_ref,
-    receipt_hash: receipt.receipt_hash,
-    intent_hash: receipt.intent_hash,
-    policy_hash: receipt.policy_hash,
     policy_id: receipt.policy_id || null,
     status: "SKIPPED",
     provider: smsConfig.provider || "log_only",
@@ -63,7 +60,7 @@ function buildSmsMessage(receipt) {
     `actor: ${receipt.original_intent.actor || "unknown"}`,
     `decision: ${receipt.decision}`,
     `reason: ${receipt.reason}`,
-    `ref: ${receipt.execution_ref}`
+    `receipt: ${receipt.receipt_id}`
   ].join(" | ");
 }
 

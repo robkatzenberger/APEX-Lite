@@ -131,15 +131,12 @@ A receipt is the deterministic record produced for one policy evaluation. It inc
 - `receipt_type`
 - `apex_version`
 - `evaluated_at`
+- `receipt_id`
 - `control_mode`
 - `blocking`
 - `decision`
 - `reason`
 - `policy_id`
-- `execution_ref`
-- `receipt_hash`
-- `policy_hash`
-- `intent_hash`
 - `reward_signal`
 - `original_intent`
 
@@ -150,15 +147,12 @@ Example:
   "receipt_type": "apex-lite.receipt",
   "apex_version": "0.1.0",
   "evaluated_at": "2026-01-01T00:00:00.000Z",
+  "receipt_id": "rcpt_INT_001_20260101T000000000Z",
   "control_mode": "ALLOW_OR_ESCALATE",
   "blocking": false,
   "decision": "REQUIRE_APPROVAL",
   "reason": "Email gate matched escalation keywords",
   "policy_id": "email_gate",
-  "execution_ref": "exec_0123456789abcdef",
-  "receipt_hash": "<sha256>",
-  "policy_hash": "<sha256>",
-  "intent_hash": "<sha256>",
   "reward_signal": "TRANSPARENCY_REWARDED",
   "original_intent": {
     "intent_id": "INT-001",
@@ -175,9 +169,7 @@ Example:
 }
 ```
 
-`policy_hash` and `intent_hash` are SHA-256 hashes of stable canonical JSON representations. They make evaluations easier to replay and audit.
-`receipt_hash` is a stable SHA-256 hash of the receipt body, excluding the `receipt_hash` field itself, so operator actions can point back to one exact evaluation record.
-`execution_ref` is a simple handoff reference that downstream tools can carry forward to show which exact policy decision an execution came from.
+`receipt_id` is a plain readable identifier for the local reference build. It gives operators and audit entries a simple way to refer to one evaluation without carrying the enterprise-style hash layer in the public implementation.
 
 ## Gate Config
 
@@ -199,7 +191,7 @@ Escalation resolutions also append operator action entries with an explicit `out
 Those action entries also record the resolving operator identifier.
 Escalation notifications can also append `apex-lite.notification` entries so operators can see whether an SMS notice was skipped, simulated, sent, or failed.
 Only one operator outcome is accepted for a given escalated receipt.
-Operator-action verification reads the audit log once per request and checks the referenced receipt and prior operator outcome against that recorded history.
+Operator-action verification reads the audit log once per request and checks the referenced `receipt_id` and prior operator outcome against that recorded history.
 
 That keeps the first implementation:
 
@@ -223,7 +215,7 @@ The tests cover:
 - safe allow behavior
 - YAML approval rules overriding gate allow matches
 - whole-keyword gate matching instead of arbitrary substring matches
-- receipt hash presence
+- plain receipt id presence
 - one-line-per-evaluation audit logging
 - real `POST /api/evaluate` responses
 - real `POST /api/operator-action` responses
