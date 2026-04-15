@@ -35,8 +35,6 @@ APEX-Lite is not:
 - an orchestration framework
 - a monitoring platform
 - an in-model safety layer
-- a policy learning system
-- a cloud or multi-tenant service in this first code drop
 
 It does not rely on LLM reasoning for policy outcomes.
 
@@ -169,7 +167,7 @@ Example:
 }
 ```
 
-`receipt_id` is a plain readable identifier for the local reference build. It gives operators and audit entries a simple way to refer to one evaluation without carrying the enterprise-style hash layer in the public implementation.
+`receipt_id` is a plain readable identifier for the local reference build. It gives operators and audit entries a simple way to refer to one evaluation. 
 
 ## Gate Config
 
