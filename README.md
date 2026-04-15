@@ -246,3 +246,4 @@ This is meant to feel closer to a SCADA-style interlock or admission controller 
 This repository is licensed under Apache-2.0. See `LICENSE`.
 
 That permissive license applies to this public reference implementation. It should not be read as a claim that every enterprise deployment pattern, private implementation detail, or broader patent-backed system around APEX-Lite is included in this repository.
+Copyright 2025 Robert Katzenberger
