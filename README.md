@@ -1,6 +1,6 @@
 # APEX-Lite
 
-APEX-Lite stands for Action Policy EXecution. It is a minimal external pre-execution policy boundary for AI systems.
+APEX-Lite is a minimal external pre-execution policy boundary for AI systems.
 
 APEX-Lite evaluates declared intent before execution. It compares that intent to explicit operator-defined policy, returns a deterministic decision, emits a receipt, and can append that receipt to an audit log.
 
